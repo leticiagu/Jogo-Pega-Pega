@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Pega-Pega!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffd5f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        #target, #bonus {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #target {
+            background-color: #8b248f;
+        }
+
+        #bonus {
+            background-color: #591c6b;
+            width: 70px; /* Maior que o alvo normal */
+            height: 70px;
+        }
+
+        #score {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff00d4;
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #b300aa;
+        }
+
+        #timer {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pega-Pega!</h1>
+        <div id="target"></div>
+        <div id="bonus"></div>
+        <div id="score">Pontuação: 0</div>
+        <div id="timer">Tempo: 30s</div>
+        <button id="start">Começar</button>
+        <audio id="bgMusic" loop>
+            <source src="trilhasonora.mp3" type="audio/mpeg"> <!-- Adicione o caminho correto para sua música -->
+            Seu navegador não suporta áudio.
+        </audio>
+    </div>
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let targetInterval;
+        const target = document.getElementById('target');
+        const bonus = document.getElementById('bonus');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startButton = document.getElementById('start');
+        const bgMusic = document.getElementById('bgMusic');
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = `Pontuação: ${score}`;
+            timerDisplay.textContent = `Tempo: ${timeLeft}s`;
+            target.style.display = 'block';
+            bonus.style.display = 'block';
+            moveTargets();
+            bgMusic.play(); // Inicia a música de fundo
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Tempo: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(gameInterval);
+                    clearInterval(targetInterval);
+                    target.style.display = 'none';
+                    bonus.style.display = 'none';
+                    bgMusic.pause(); // Pausa a música ao fim do jogo
+                    alert(`Fim de jogo! Sua pontuação é: ${score}`);
+                }
+            }, 1000);
+        }
+
+        function moveTargets() {
+            targetInterval = setInterval(() => {
+                moveTarget(target, 1);
+                if (Math.random() < 0.3) { // 30% de chance de gerar o alvo bônus
+                    moveTarget(bonus, 2);
+                } else {
+                    bonus.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function moveTarget(targetElement, type) {
+            const randomX = Math.random() * (window.innerWidth - (type === 2 ? 70 : 50));
+            const randomY = Math.random() * (window.innerHeight - (type === 2 ? 70 : 50));
+            targetElement.style.left = `${randomX}px`;
+            targetElement.style.top = `${randomY}px`;
+            targetElement.style.display = 'block';
+            targetElement.style.transform = 'scale(1.2)';
+            setTimeout(() => targetElement.style.transform = 'scale(1)', 200);
+        }
+
+        target.addEventListener('click', () => {
+            score++;
+            scoreDisplay.textContent = `Pontuação: ${score}`;
+            moveTarget(target, 1);
+            playSound('sonbasic.mp3'); // Adicione som de acerto
+        });
+
+        bonus.addEventListener('click', () => {
+            score += 10; // Bônus de 10 pontos
+            scoreDisplay.textContent = `Pontuação: ${score}`;
+            bonus.style.display = 'none';
+            playSound('bonus.mp3'); // Adicione som de bônus
+        });
+
+        startButton.addEventListener('click', startGame);
+
+        function playSound(type) {
+            const audio = new Audio(type === 'hit' ? 'sonbasic.mp3' : 'bonus.mp3');
+            audio.play();
+        }
+    </script>
+</body>
+</html>
